@@ -22,16 +22,17 @@ const getContent = async (browser) => {
   const phrasesObject = phrases.map((category) => { 
    if (!category || !category.phrases) return;
    category.phrases.map((phrase) => { 
-    const phraseParts = phrase.split(/\.|\?|\!/)
-    return {
-      author: phraseParts[1].trim().replace(')', '').replace('(', ''),
-      phrase: phraseParts[0],
+    const obj = {
+      author: phrase.substring(phrase.charAt('(')).trim().replace(')', '').replace('(', ''),
+      phrase: phrase.substring(0, phrase.charAt('(')),
       category: category.categoryName 
     }
+    log(obj)
+    return obj
   })
  })
 
-  console.log(phrasesObject)
+  log(phrasesObject)
   browser.close()
 }
 
