@@ -13,27 +13,27 @@ const getContent = async (browser) => {
   const phrases = await Promise.all(
       categories.map(async (category) => { 
          try{
-           return { categoryName: category, phrases: await getCategoryPhrases(category, browser) }
-        } catch(error) { }
+           const phrases = await getCategoryPhrases(category, browser) 
+           return { categoryName: category, phrases }
+        } catch(error) { log(error) }
   }))
-
+  browser.close()
   log('got the results back!')
 
-  const phrasesObject = phrases.map((category) => { 
-   if (!category || !category.phrases) return;
-   category.phrases.map((phrase) => { 
-    const obj = {
-      author: phrase.substring(phrase.charAt('(')).trim().replace(')', '').replace('(', ''),
-      phrase: phrase.substring(0, phrase.charAt('(')),
-      category: category.categoryName 
-    }
-    log(obj)
-    return obj
-  })
+  const phrasesObject = phrases.filter((phrase) => phrase)
+   .map((category) => { 
+       return category.phrases.map((phrase) => { 
+         //log(phrase)
+         const obj = {
+           author: phrase.substring(phrase.indexOf('(')).trim().replace(')', '').replace('(', ''),
+           phrase: phrase.substring(0, phrase.indexOf('(')),
+           category: category.categoryName 
+         }
+        return obj
+    })
  })
 
-  log(phrasesObject)
-  browser.close()
+  log([].concat.apply([], phrasesObject))
 }
 
 const getCategories = async () => {
@@ -55,7 +55,7 @@ const getCategories = async () => {
 const getCategoryPhrases = async (category, browser) => {
  const page = await browser.newPage();
  const url = `${CATEGORY_BASE_URL}${category}.php`
- await page.goto(url);
+ await page.goto(url, { timeout: 0 });
  return await page.evaluate(() => {
    const divs = [...document.querySelectorAll('li')]
    return divs.map((li) =>  li.textContent.trim())
