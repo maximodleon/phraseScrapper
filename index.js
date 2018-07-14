@@ -7,7 +7,7 @@ const CATEGORY_BASE_URL = `${BASE_URL}/frases-de-`
 const { log } = console
 
 const saveToFile = (buffer) => {
-   fs.writeFile('phrases.json', JSON.stringify(buffer), (error) => {
+   fs.writeFile('phrases.json', JSON.stringify([].concat.apply([], buffer)), (error) => {
        if (error) { throw error }
        log('file saved')
    })
@@ -24,7 +24,8 @@ const getContent = async (browser) => {
            const phrases = await getCategoryPhrases(category, browser) 
            return { categoryName: category, phrases }
         } catch(error) { log(error) }
-  }))
+      })
+  )
   browser.close()
   log('got the results back!')
 
@@ -56,6 +57,7 @@ const getCategories = async () => {
 
   // remover los enalces que estan vacios ' '
   const cleanLinks = links.filter((link) => link.length > 2)
+  await browser.pages()
   await browser.close()
   return cleanLinks
 }
@@ -64,10 +66,12 @@ const getCategoryPhrases = async (category, browser) => {
  const page = await browser.newPage();
  const url = `${CATEGORY_BASE_URL}${category}.php`
  await page.goto(url, { timeout: 0 });
- return await page.evaluate(() => {
+ const values =  await page.evaluate(() => {
    const divs = [...document.querySelectorAll('li')]
    return divs.map((li) =>  li.textContent.trim())
  })
+ await page.close()
+ return values
 }
 
 (async () => {
