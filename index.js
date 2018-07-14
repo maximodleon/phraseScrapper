@@ -6,6 +6,13 @@ const BASE_URL = 'https://www.frasesde.org'
 const CATEGORY_BASE_URL = `${BASE_URL}/frases-de-`
 const { log } = console
 
+const saveToFile = (buffer) => {
+   fs.writeFile('phrases.json', JSON.stringify(buffer), (error) => {
+       if (error) { throw error }
+       log('file saved')
+   })
+}
+
 const getContent = async (browser) => {
   const categories = await getCategories()
   const ws = fs.createWriteStream('phrases.json')
@@ -13,6 +20,7 @@ const getContent = async (browser) => {
   const phrases = await Promise.all(
       categories.map(async (category) => { 
          try{
+           log('processing category', category)
            const phrases = await getCategoryPhrases(category, browser) 
            return { categoryName: category, phrases }
         } catch(error) { log(error) }
@@ -32,8 +40,8 @@ const getContent = async (browser) => {
         return obj
     })
  })
-
-  log([].concat.apply([], phrasesObject))
+  saveToFile(phrasesObject)
+  log('done')
 }
 
 const getCategories = async () => {
