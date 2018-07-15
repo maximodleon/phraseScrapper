@@ -7,7 +7,7 @@ const CATEGORY_BASE_URL = `${BASE_URL}/frases-de-`
 const { log } = console
 
 const saveToFile = (buffer) => {
-   fs.writeFile('phrases.json', JSON.stringify([].concat.apply([], buffer)), (error) => {
+   fs.writeFile('otherphrases.json', JSON.stringify([].concat.apply([], buffer)), (error) => {
        if (error) { throw error }
        log('file saved')
    })
@@ -41,6 +41,7 @@ const getContent = async (browser) => {
         return obj
     })
  })
+
   saveToFile(phrasesObject)
   log('done')
 }
@@ -64,10 +65,12 @@ const getCategories = async () => {
 
 const getCategoryPhrases = async (category, browser) => {
  const page = await browser.newPage();
- const url = `${CATEGORY_BASE_URL}${category}.php`
- await page.goto(url, { timeout: 0 });
+ const normalizedCat = category.normalize('NFKD').replace(/[^\w]/g, '')
+ const url = `${CATEGORY_BASE_URL}${normalizedCat}.php`
+ await page.goto(url);
  const values =  await page.evaluate(() => {
    const divs = [...document.querySelectorAll('li')]
+   console.log('divs', divs)
    return divs.map((li) =>  li.textContent.trim())
  })
  await page.close()
